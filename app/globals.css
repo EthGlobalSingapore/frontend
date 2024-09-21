@@ -208,3 +208,11 @@ body {
 .table-th {
   background-color: #BBDF47;
 }
+
+.home-title-section {
+  max-width: 50%;
+}
+.home-h1 {
+  font-size: 70px;
+  margin: 0 auto;
+}

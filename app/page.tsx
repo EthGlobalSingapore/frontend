@@ -5,6 +5,8 @@ import {
 } from "@account-kit/react";
 import { useRouter } from "next/navigation"; // Import Next.js router for navigation
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+
 
 
 export default function Page() {
@@ -39,9 +41,12 @@ export default function Page() {
         <p>Loading...</p> // Show loading state while initializing
       ) : !user ? (
         // Show landing page content if user is not logged in
-        <div>
-          <h1>Welcome to Our App</h1>
-          <p>This is the landing page content.</p>
+        <div className="flex flex-col gap-8 justify-center items-center home-title-section">
+          <h1 className="home-h1">Automate DCA into your favourite assets</h1>
+          <h3>Set-up and automate a custom strategy to DCA into the best assets</h3>
+          <Button className="btn btn-primary max-w-100 align-center big-button">
+            Login
+          </Button>
         </div>
       ) : null}
     </main>
