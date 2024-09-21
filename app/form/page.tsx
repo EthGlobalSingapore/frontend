@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input"
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
+import { getClient } from "@/config";
+import { sepolia } from "viem/chains";
+import { parseAbi } from "viem";
+import { useStrategyAddress } from "../hooks/useStrategyAddress";
 
 
 const MultiStepForm = () => {
@@ -18,10 +22,13 @@ const MultiStepForm = () => {
     }
   });
 
-  const router = useRouter(); // Initialize the router
-  
+  const router = useRouter(); // Initialize the router 
 
-  const onSubmit = (data) => {
+  const setUpStrategy = async (data) => {
+    const { strategyAddress, loading, error } = useStrategyAddress(data);  
+  }
+
+  const onSubmit = (data: { options: any; amounts: any; newAmounts: any; }) => {
     if (step === 4) {
       // Collect the selected options and amounts
       const selectedOptions = data.options;
