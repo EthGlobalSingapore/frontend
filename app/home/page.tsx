@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import lottie from 'lottie-web';
+
+
 
 const Home = () => {
   const [isStrategyCreated, setIsStrategyCreated] = useState(false);
@@ -23,15 +26,16 @@ const Home = () => {
 
   return (
     <div>
-      <h1>Home Page</h1>
       {isStrategyCreated ? (
         // Show dashboard content if the strategy has been created
         <Dashboard onReset={handleReset} />
       ) : (
         // Show "Create Strategy" button if no strategy is created yet
-        <div className="flex justify-center">
+        <div className="flex justify-center flex-col create-strategy items-center">
+          {/* <img src="/assets/Flow 2.gif" className='h-96' alt="Setup process" /> */}
+          <h3 className='text-3xl' >Set up a custom strategy first</h3>
           <Link href="/form">
-            <Button>Create Strategy</Button>
+            <Button className='big-button'>Create Strategy</Button>
           </Link>
         </div>
       )}
@@ -52,39 +56,47 @@ const Dashboard = ({ onReset }) => {
   }, []);
 
   return (
-    <div>
+    <div className='dashboard max-w-5xl mx-auto w-full flex-col flex gap-6'>
       <div className='flex justify-between'>
-        <h1>Dashboard</h1>
+        <h1>Your portfolio</h1>
         <div className='flex'>
-            <Link href="/form">
-            <Button>Edit Strategy</Button>
-            </Link>
-            <Button onClick={onReset}>Reset Strategy</Button>
+            <div className='flex gap-2'>
+              <Link href="/form">
+              <Button>Edit Strategy</Button>
+              </Link>
+              <Button onClick={onReset}>Reset Strategy</Button>
+            </div>
         </div>
               </div>
 
-      {submittedData.length > 0 ? (
-        <table className="min-w-full border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th className="border border-gray-300 p-2">Cryptocurrency</th>
-              <th className="border border-gray-300 p-2">Amount (Step 3)</th>
-              <th className="border border-gray-300 p-2">Amount (Step 4)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {submittedData.map((item, index) => (
-              <tr key={index}>
-                <td className="border border-gray-300 p-2">{item.option}</td>
-                <td className="border border-gray-300 p-2">{item.amount}</td>
-                <td className="border border-gray-300 p-2">{item.newAmount}</td>
+        {submittedData.length > 0 ? (
+          <table className="min-w-full border-collapse border border-gray-300 mt-4 secondary-button rounded-full">
+            <thead>
+              <tr>
+                <th className="border border-gray-300 p-4 table-th">Currency</th>
+                <th className="border border-gray-300 p-4 table-th">Exit target</th>
+                <th className="border border-gray-300 p-4 table-th">Your balance</th>
+
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No data available</p>
-      )}
+            </thead>
+            <tbody>
+              {submittedData.map((item, itemIndex) => (
+                item.option.map((option, index) => (
+                  <tr key={`${itemIndex}-${index}`}>
+                    <td className="border border-gray-300 p-4">{option}</td>
+                    <td className="border border-gray-300 p-4">
+                      {item.newAmount[index] ? `${item.newAmount[index]} $` : ''}
+                    </td>
+                    <th className="border border-gray-300 p-4">0.5</th>
+
+                  </tr>
+                ))
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No data available</p>
+        )}
     </div>
   );
 };

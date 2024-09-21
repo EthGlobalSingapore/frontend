@@ -37,15 +37,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="p-4 flex justify-between">
-      <Link href="/" className="text-lg font-bold hover:text-gray-400">
-        Logo
+    <nav className="py-4 px-20 flex justify-between navbar">
+      <Link href="/" className="text-3xl font-bold hover:text-gray-400 logo">
+        DCAwesome
       </Link>
       <div className="flex items-center space-x-6">
-        <ul className="flex space-x-4">
-          <li>
-            <Link href="/" className="hover:text-gray-400">Home</Link>
-          </li>
+        <ul className="flex space-x-4 pixelfont">
           <li>
             <Link href="/about" className="hover:text-gray-400">About</Link>
           </li>
