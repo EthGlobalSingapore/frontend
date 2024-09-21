@@ -3,9 +3,14 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
+import { getClient } from "@/config";
+import { sepolia } from "viem/chains";
+import { decodeEventLog, encodeFunctionData, Hex, parseAbi } from "viem";
+import { useStrategyAddress } from "../hooks/useStrategyAddress";
+import { useSendUserOperation, useSmartAccountClient } from "@account-kit/react";
 
 
 const MultiStepForm = () => {
@@ -17,10 +22,75 @@ const MultiStepForm = () => {
     }
   });
 
-  const router = useRouter(); // Initialize the router
-  
 
-  const onSubmit = (data) => {
+  const router = useRouter(); // Initialize the router 
+
+  const factoryAbi = parseAbi([
+    'function createStrategy(address owner,uint256 amount) external',
+    `function getStrategy(address owner) external view returns (address)`,
+    `event StrategyCreated(address strategyAddress)`
+  ]);
+
+  const [userOpCompleted, setUserOpCompleted] = useState(false);
+
+  const { client } = useSmartAccountClient({ type: "MultiOwnerModularAccount" });
+  const { sendUserOperation, isSendingUserOperation } = useSendUserOperation({
+    client,
+    // optional parameter that will wait for the transaction to be mined before returning
+    waitForTxn: true,
+    onSuccess: async ({ hash, request }) => {
+      console.log(`tx hash:${hash}`);
+
+      const receipt = await client?.getTransactionReceipt({hash});
+      console.log(`receipt ${receipt}`);
+
+      if (receipt) {
+        const logs = receipt?.logs
+        .map((log) => {
+          try {
+            const decoded = decodeEventLog({
+              abi: factoryAbi,
+              data: log.data,
+              topics: log.topics
+            });
+
+            console.log(decoded);
+
+            // return decoded.eventName === "GreeterCreated";
+
+            if (decoded.eventName === "StrategyCreated") {
+              return decoded.args.strategyAddress;
+            }
+
+          } catch (e) {
+            // console.error(e);
+            return null
+          }
+        });
+
+        // console.log(logs);
+
+        localStorage.setItem("strategyAddress", logs.find((log) => log !== undefined) ?? "");
+        setUserOpCompleted(true);
+
+        // setStrategyAddress(logs.find((log) => log !== undefined) ?? null);
+        // setLoading(false);
+      }
+    },
+    onError: async (e, request) => {
+      console.error(e);
+      // setError(`Error fetching strategy address: ${e}`);
+    },
+  });
+
+
+  useEffect(() => {
+    if (userOpCompleted) {
+      router.push('/home'); // Navigate to home
+    }
+  }, [userOpCompleted]);
+
+  const onSubmit = async (data: { options: any; amounts: any; newAmounts: any; }) => {
     if (step === 3) {
       // Collect the selected option and amounts
       const selectedOption = data.options; // This will be a single value
@@ -32,12 +102,62 @@ const MultiStepForm = () => {
         newAmount: newAmount,
       }];
 
+      
+      const factoryAbi = parseAbi([
+        'function createMyStrategy(address destinationWallet, uint256 destinartionChain) external',
+        `function getStrategy(address user) public view returns (address)`,
+        `event StrategyDeployed(address owner, address strategyAddress)`
+      ]);
+
+      const sepoliaClient = getClient(sepolia);
+
+      let address: Hex | undefined = '0x0000000000000000000000000000000000000000';
+      try {
+        address = await client?.readContract({
+          address: "0x6353CCB47553067B99Ba57BEE120bf6aaFaa47f9",
+          abi: factoryAbi,
+          args: ["0x77a75E8854051E2854FE2806AdF794ddF97f2F92"],  // Arguments for the function call
+          functionName: 'getStrategy',  // Function name to call
+        });
+      } catch (error) {
+        console.error('Error reading contract:', error);
+        // address = '0x0000000000000000000000000000000000000000' as Hex;
+      }
+
+      if (address === '0x0000000000000000000000000000000000000000') {
+
+        const cd = encodeFunctionData({
+          abi: factoryAbi,
+          functionName: "createMyStrategy",
+          args: ["0x0000000000000000000000000000000000000000", 1000000000000000000n],
+        })
+
+        sendUserOperation({
+          uo: [
+            {
+              target: process.env.NEXT_PUBLIC_FACTORY_ADDRESS! as Hex,
+              data: cd,
+              value: 0n,
+            },
+        ],
+        overrides: {
+          // callGasLimit: 1000000n,
+          maxPriorityFeePerGas: 50000000000n,
+          maxFeePerGas: 2000000000000n,
+        },
+        });
+
+      } else {
+        localStorage.setItem("strategyAddress", address!);
+        console.log("strategyAddress", address);
+        router.push('/home');
+      }
       // Store data in localStorage (or use state management)
       localStorage.setItem("submittedData", JSON.stringify(combinedData));
       localStorage.setItem("isStrategyCreated", "true");
 
       console.log('Final Submitted Data:', data);
-      router.push('/home'); // Redirect to the dashboard
+      // router.push('/home'); // Redirect to the dashboard
     } else {
       setStep(step + 1); // Proceed to next step
     }
@@ -220,7 +340,7 @@ const handleNext = (data) => {
           {errors.selectedOption && <p className="text-red-500">{errors.selectedOption.message}</p>}
           <div className="flex gap-2">
             <Button className="big-button w-full" type="button" variant="secondary" onClick={prevStep}>Back</Button>
-            <Button className="big-button w-full" type="submit">Submit</Button>
+            <Button className="big-button w-full" type="submit">{isSendingUserOperation ? "Submitting..." : "Submit"}</Button>
           </div>
           
         </div>
