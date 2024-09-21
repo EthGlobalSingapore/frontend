@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { getClient } from "@/config";
 import { sepolia } from "viem/chains";
-import { parseAbi } from "viem";
+import { decodeEventLog, encodeFunctionData, Hex, parseAbi } from "viem";
 import { useStrategyAddress } from "../hooks/useStrategyAddress";
+import { useSendUserOperation, useSmartAccountClient } from "@account-kit/react";
 
 
 const MultiStepForm = () => {
@@ -22,13 +23,75 @@ const MultiStepForm = () => {
     }
   });
 
+
   const router = useRouter(); // Initialize the router 
 
-  const setUpStrategy = async (data) => {
-    const { strategyAddress, loading, error } = useStrategyAddress(data);  
-  }
+  const factoryAbi = parseAbi([
+    'function createStrategy(address owner,uint256 amount) external',
+    `function getStrategy(address owner) external view returns (address)`,
+    `event StrategyCreated(address strategyAddress)`
+  ]);
 
-  const onSubmit = (data: { options: any; amounts: any; newAmounts: any; }) => {
+  const [userOpCompleted, setUserOpCompleted] = useState(false);
+
+  const { client } = useSmartAccountClient({ type: "MultiOwnerModularAccount" });
+  const { sendUserOperation, isSendingUserOperation } = useSendUserOperation({
+    client,
+    // optional parameter that will wait for the transaction to be mined before returning
+    waitForTxn: true,
+    onSuccess: async ({ hash, request }) => {
+      console.log(`tx hash:${hash}`);
+
+      const receipt = await client?.getTransactionReceipt({hash});
+      console.log(`receipt ${receipt}`);
+
+      if (receipt) {
+        const logs = receipt?.logs
+        .map((log) => {
+          try {
+            const decoded = decodeEventLog({
+              abi: factoryAbi,
+              data: log.data,
+              topics: log.topics
+            });
+
+            console.log(decoded);
+
+            // return decoded.eventName === "GreeterCreated";
+
+            if (decoded.eventName === "StrategyCreated") {
+              return decoded.args.strategyAddress;
+            }
+
+          } catch (e) {
+            console.error(e);
+            return null
+          }
+        });
+
+        // console.log(logs);
+
+        localStorage.setItem("strategyAddress", logs.find((log) => log !== undefined) ?? "");
+        setUserOpCompleted(true);
+
+        // setStrategyAddress(logs.find((log) => log !== undefined) ?? null);
+        // setLoading(false);
+      }
+    },
+    onError: async (e, request) => {
+      console.error(e);
+      // setError(`Error fetching strategy address: ${e}`);
+    },
+  });
+
+
+  useEffect(() => {
+    if (userOpCompleted) {
+      router.push('/home'); // Navigate to home
+    }
+  }, [userOpCompleted, router]);
+
+  const onSubmit = async (data: { options: any; amounts: any; newAmounts: any; }) => {
     if (step === 4) {
       // Collect the selected options and amounts
       const selectedOptions = data.options;
@@ -41,12 +104,54 @@ const MultiStepForm = () => {
         newAmount: newAmounts[index],
       }));
 
+      
+      const factoryAbi = parseAbi([
+        'function createStrategy(address owner,uint256 amount) external',
+        `function getStrategy(address owner) external view returns (address)`,
+        `event StrategyCreated(address strategyAddress)`
+      ]);
+
+      const sepoliaClient = getClient(sepolia);
+
+      let address: Hex = await sepoliaClient.readContract({
+        address: process.env.NEXT_PUBLIC_FACTORY_ADDRESS! as Hex,
+        abi: factoryAbi,
+        args: ['0x0'],  // Arguments for the function call
+        functionName: 'getStrategy',  // Function name to call
+      });
+
+      if (address === '0x0000000000000000000000000000000000000000') {
+
+        const cd = encodeFunctionData({
+          abi: factoryAbi,
+          functionName: "createStrategy",
+          args: ["0x0000000000000000000000000000000000000000", 1000000000000000000n],
+        })
+
+        sendUserOperation({
+          uo: [
+            {
+              target: process.env.NEXT_PUBLIC_FACTORY_ADDRESS! as Hex,
+              data: cd,
+              value: 0n,
+            },
+        ],
+        overrides: {
+          // callGasLimit: 1000000n,
+          maxPriorityFeePerGas: 50000000000n,
+          maxFeePerGas: 2000000000000n,
+        },
+        });
+
+      } else {
+        localStorage.setItem("strategyAddress", address);
+      }
       // Store data in localStorage (or use state management)
       localStorage.setItem("submittedData", JSON.stringify(combinedData));
       localStorage.setItem("isStrategyCreated", "true");
 
       console.log('Final Submitted Data:', data);
-      router.push('/home'); // Redirect to the dashboard
+      // router.push('/home'); // Redirect to the dashboard
     } else {
       setStep(step + 1); // Proceed to next step
     }
@@ -176,7 +281,7 @@ const handleNext = (data) => {
           ))}
           {errors.field4 && <p>{errors.field4.message}</p>}
           <Button type="button" variant="secondary" onClick={prevStep}>Back</Button>
-          <Button type="submit">Submit</Button>
+          <Button type="submit"> {isSendingUserOperation ? "Submitting..." : "Submit"}</Button>
         </div>
       )}
     </form>
