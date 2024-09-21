@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Londrina+Solid&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* app/globals.css or styles/globals.css */
+@font-face {
+  font-family: 'Sf Pro Rounded';
+  src: url('fonts/SF Pro Rounded/SF-Pro-Rounded-Regular.otf') format('otf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+body {
+  font-family: 'Sf Pro Rounded', sans-serif;
+  background-color: #FFFBED;
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -30,7 +47,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 128 96% 67%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -91,16 +108,18 @@
 /* Custom styles */
 @layer base {
   h1 {
-    @apply text-4xl font-bold;
+    @apply text-5xl font-bold;
+    font-family: 'Londrina Solid', cursive; /* Fallback font */
   }
   h2 {
     @apply text-3xl font-semibold;
+    font-family: 'Londrina Solid', cursive; /* Fallback font */
   }
   h3 {
     @apply text-2xl font-semibold;
   }
   h4 {
-    @apply text-xl font-medium;
+    @apply text-xl font-semibold;
   }
 }
 
@@ -119,6 +138,73 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 4em;
+  position: relative;
+  padding-top: 5em;
+}
+
+.create-strategy {
+  max-width: 50%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   gap: 2em;
   position: relative;
+  padding-top: 20%;
+}
+
+.logo {
+  font-family: 'Londrina Solid', cursive; /* Fallback font */
+}
+
+.navbar {
+  background-color: #FFC6F4;
+  border-bottom: 4px solid black;
+}
+
+.primary-button {
+  border-color: #29006F;
+  border-width: 4px;
+  color: #29006F;
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.secondary-button {
+  border-color: #BBDF47;
+  background-color: #FFFBED;
+  color: #29006F;
+  border-width: 4px;
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+
+}
+
+.big-button {
+  padding-top: 24px;
+  padding-bottom: 24px;
+  font-size: large;
+}
+
+.asset-card {
+  border-radius: 12px;
+  border-color: #BBDF47;
+  background-color: #F1FFC6;
+}
+
+.pixelfont {
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+.dashboard {
+  padding-top: 5em;
+}
+
+.table-th {
+  background-color: #BBDF47;
 }
