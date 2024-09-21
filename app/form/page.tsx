@@ -22,17 +22,18 @@ const MultiStepForm = () => {
   
 
   const onSubmit = (data) => {
-    if (step === 4) {
-      // Collect the selected options and amounts
-      const selectedOptions = data.options;
-      const amounts = data.amounts;
-      const newAmounts = data.newAmounts;
-
-      const combinedData = selectedOptions.map((option, index) => ({
-        option,
-        amount: amounts[index],
-        newAmount: newAmounts[index],
-      }));
+    if (step === 3) {
+      // Collect the selected option and amounts
+      const selectedOption = data.options; // This will be a single value
+      const amount = data.amounts; // This collects the array of amounts
+      const newAmount = data.newAmounts; // Assuming this is a single value
+  
+      // Create an array of the combined data
+      const combinedData = [{
+        option: selectedOption,
+        amount: data.amounts,
+        newAmount: newAmount,
+      }];
 
       // Store data in localStorage (or use state management)
       localStorage.setItem("submittedData", JSON.stringify(combinedData));
@@ -102,20 +103,41 @@ const handleNext = (data) => {
       {/* Step 2 */}
       {step === 2 && (
         <div className="step-container">
-          <h2>Step 2</h2>
+          <div>
+            <h5>Step 2</h5>
+            <h2>Assets</h2>
+          </div>
           <div className="grid grid-cols-4 gap-2">
-      {['Bitcoin', 'Ethereum', 'Solana', 'Nouns'].map(option => (
+      {['Bitcoin', 'Ethereum', 'Solana', 'Nouns'].map((option, index) => (
         <div 
           key={option} 
           className="bg-white p-4 rounded-lg border border-gray-200 flex flex-col items-center gap-4"
         >
           <input
-            type="checkbox"
+            type="radio"
             {...register("options", { required: "At least one option must be selected" })}
             value={option}
             className="h-5 w-5"
           />
           <label className="text-lg font-medium">{option}</label>
+
+          {/* Show percentage input when the option is selected */}
+          {watch("options") === option && (
+            <div className="mt-2 w-full">
+              <div className="flex items-center mt-1">
+                <Input
+                  type="number"
+                  className="w-full"
+                  {...register(`amounts.${index}`, { required: `Allocation for ${option} is required` })}
+                />
+                <span className="ml-2">%</span>
+              </div>
+              {errors.amounts && errors.amounts[index] && (
+                <p className="text-red-500">{errors.amounts[index].message}</p>
+              )}
+            </div>
+          )}
+
         </div>
         ))}
         </div> 
@@ -125,53 +147,31 @@ const handleNext = (data) => {
         </div>
       )}
 
+      
       {/* Step 3 */}
       {step === 3 && (
-        <div className="step-container">
-          <h2>Step 3</h2>
-          {watch("options").map((option, index) => (
-            <div key={option}>
-              <label htmlFor={`amounts.${index}`}>{`Amount for ${option}`}</label>
-              <div className="flex items-center">
-                <Input
-                  type="number"
-                  {...register(`amounts.${index}`, { required: `Amount for ${option} is required` })}
-                  placeholder={`Enter amount for ${option}`}
-                />
-                <span className="percentage-symbol">%</span>  
-              </div>
-              {errors.amounts && errors.amounts[index] && <p>{errors.amounts[index].message}</p>}
-            </div>
-          ))}
-          {errors.field3 && <p>{errors.field3.message}</p>}
-          <Button type="button" variant="secondary" onClick={prevStep}>Back</Button>
-          <Button type="button" onClick={handleSubmit(handleNext)}>Next</Button>
+      <div className="step-container">
+        <div>
+          <h5>Step 3</h5>
+          <h2>Exit targets</h2>
         </div>
-      )}
-
-      {/* Step 4 */}
-      {step === 4 && (
-        <div className="step-container">
-          <h2>Step 4</h2>
-          {watch("options").map((option, index) => (
-            <div key={option}>
-              <label htmlFor={`newAmounts.${index}`}>{`Amount for ${option}`}</label>
-              <div className="flex items-center">
-                <Input
-                  type="number"
-                  {...register(`newAmounts.${index}`, { required: `Amount for ${option} is required` })}
-                  placeholder={`Enter amount for ${option}`}
-                />
-                <span className="percentage-symbol">$</span>  
-              </div>
-              {errors.newAmounts && errors.newAmounts[index] && <p>{errors.newAmounts[index].message}</p>}
-            </div>
-          ))}
-          {errors.field4 && <p>{errors.field4.message}</p>}
-          <Button type="button" variant="secondary" onClick={prevStep}>Back</Button>
-          <Button type="submit">Submit</Button>
+        <div>
+          <label htmlFor={`newAmounts`}>{`Amount for ${watch("options")}`}</label>
+          <div className="flex items-center">
+            <Input
+              type="number"
+              className="pr-10"
+              {...register(`newAmounts`, { required: `Amount for ${watch("options")} is required` })}
+              placeholder={`Enter amount for ${watch("options")}`}
+            />
+            <span className="percentage-symbol">$</span>
+          </div>
+          {errors.newAmounts && <p className="text-red-500">{errors.newAmounts.message}</p>}
         </div>
-      )}
+        <Button type="button" variant="secondary" onClick={prevStep}>Back</Button>
+        <Button type="submit">Submit</Button>
+      </div>
+    )}
     </form>
   );
 };

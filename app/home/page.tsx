@@ -23,7 +23,6 @@ const Home = () => {
 
   return (
     <div>
-      <h1>Home Page</h1>
       {isStrategyCreated ? (
         // Show dashboard content if the strategy has been created
         <Dashboard onReset={handleReset} />
@@ -52,32 +51,34 @@ const Dashboard = ({ onReset }) => {
   }, []);
 
   return (
-    <div>
+    <div className='max-w-5xl mx-auto w-full'>
       <div className='flex justify-between'>
-        <h1>Dashboard</h1>
+        <h1>Your portfolio</h1>
         <div className='flex'>
-            <Link href="/form">
-            <Button>Edit Strategy</Button>
-            </Link>
-            <Button onClick={onReset}>Reset Strategy</Button>
+            <div className='flex gap-2'>
+              <Link href="/form">
+              <Button>Edit Strategy</Button>
+              </Link>
+              <Button onClick={onReset}>Reset Strategy</Button>
+            </div>
         </div>
               </div>
 
       {submittedData.length > 0 ? (
-        <table className="min-w-full border-collapse border border-gray-300">
+        <table className="min-w-full border-collapse border border-gray-300 mt-4">
           <thead>
             <tr>
-              <th className="border border-gray-300 p-2">Cryptocurrency</th>
-              <th className="border border-gray-300 p-2">Amount (Step 3)</th>
-              <th className="border border-gray-300 p-2">Amount (Step 4)</th>
+              <th className="border border-gray-300 p-2">Currency</th>
+              <th className="border border-gray-300 p-2">Allocation</th>
+              <th className="border border-gray-300 p-2">Exit target</th>
             </tr>
           </thead>
           <tbody>
             {submittedData.map((item, index) => (
               <tr key={index}>
                 <td className="border border-gray-300 p-2">{item.option}</td>
-                <td className="border border-gray-300 p-2">{item.amount}</td>
-                <td className="border border-gray-300 p-2">{item.newAmount}</td>
+                <td className="border border-gray-300 p-2">{item.amount} %</td>
+                <td className="border border-gray-300 p-2">{item.newAmount} $</td>
               </tr>
             ))}
           </tbody>

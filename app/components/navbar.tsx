@@ -44,9 +44,6 @@ const Navbar = () => {
       <div className="flex items-center space-x-6">
         <ul className="flex space-x-4">
           <li>
-            <Link href="/" className="hover:text-gray-400">Home</Link>
-          </li>
-          <li>
             <Link href="/about" className="hover:text-gray-400">About</Link>
           </li>
           <li>
