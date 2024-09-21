@@ -64,7 +64,7 @@ const MultiStepForm = () => {
             }
 
           } catch (e) {
-            console.error(e);
+            // console.error(e);
             return null
           }
         });
@@ -89,7 +89,7 @@ const MultiStepForm = () => {
     if (userOpCompleted) {
       router.push('/home'); // Navigate to home
     }
-  }, [userOpCompleted, router]);
+  }, [userOpCompleted]);
 
   const onSubmit = async (data: { options: any; amounts: any; newAmounts: any; }) => {
     if (step === 4) {
@@ -106,25 +106,31 @@ const MultiStepForm = () => {
 
       
       const factoryAbi = parseAbi([
-        'function createStrategy(address owner,uint256 amount) external',
-        `function getStrategy(address owner) external view returns (address)`,
-        `event StrategyCreated(address strategyAddress)`
+        'function createMyStrategy(address destinationWallet, uint256 destinartionChain) external',
+        `function getStrategy(address user) public view returns (address)`,
+        `event StrategyDeployed(address owner, address strategyAddress)`
       ]);
 
       const sepoliaClient = getClient(sepolia);
 
-      let address: Hex = await sepoliaClient.readContract({
-        address: process.env.NEXT_PUBLIC_FACTORY_ADDRESS! as Hex,
-        abi: factoryAbi,
-        args: ['0x0'],  // Arguments for the function call
-        functionName: 'getStrategy',  // Function name to call
-      });
+      let address: Hex | undefined = '0x0000000000000000000000000000000000000000';
+      try {
+        address = await client?.readContract({
+          address: "0x6353CCB47553067B99Ba57BEE120bf6aaFaa47f9",
+          abi: factoryAbi,
+          args: ["0x77a75E8854051E2854FE2806AdF794ddF97f2F92"],  // Arguments for the function call
+          functionName: 'getStrategy',  // Function name to call
+        });
+      } catch (error) {
+        console.error('Error reading contract:', error);
+        // address = '0x0000000000000000000000000000000000000000' as Hex;
+      }
 
       if (address === '0x0000000000000000000000000000000000000000') {
 
         const cd = encodeFunctionData({
           abi: factoryAbi,
-          functionName: "createStrategy",
+          functionName: "createMyStrategy",
           args: ["0x0000000000000000000000000000000000000000", 1000000000000000000n],
         })
 
@@ -144,7 +150,9 @@ const MultiStepForm = () => {
         });
 
       } else {
-        localStorage.setItem("strategyAddress", address);
+        localStorage.setItem("strategyAddress", address!);
+        console.log("strategyAddress", address);
+        router.push('/home');
       }
       // Store data in localStorage (or use state management)
       localStorage.setItem("submittedData", JSON.stringify(combinedData));
