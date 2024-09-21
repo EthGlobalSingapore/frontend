@@ -5,10 +5,10 @@ import {
   useSignerStatus,
   useUser,
 } from "@account-kit/react";
-import MyOpSenderComponent from "./sendop";
-import SwapChain from "./changeChain";
-import ReadAccount from "./getAccount";
-import SetGreetingComponent from "./sendop2";
+import MyOpSenderComponent from "./components/sca/sendop";
+import SwapChain from "./components/sca/changeChain";
+import ReadAccount from "./components/sca/getAccount";
+import SetGreetingComponent from "./components/sca/sendop2";
 
 
 export default function Home() {
