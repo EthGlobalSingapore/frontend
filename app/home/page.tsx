@@ -3,9 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import lottie from 'lottie-web';
-
-
+import Image from 'next/image';
 
 const Home = () => {
   const [isStrategyCreated, setIsStrategyCreated] = useState(false);
@@ -33,6 +31,12 @@ const Home = () => {
         // Show "Create Strategy" button if no strategy is created yet
         <div className="flex justify-center flex-col create-strategy items-center">
           {/* <img src="/assets/Flow 2.gif" className='h-96' alt="Setup process" /> */}
+          <Image
+            src="/assets/NounsGif.gif"
+            alt="Description of the GIF"
+            width={500} // specify width
+            height={500} // specify height
+           />
           <h3 className='text-3xl' >Set up a custom strategy first</h3>
           <Link href="/form">
             <Button className='big-button'>Create Strategy</Button>
