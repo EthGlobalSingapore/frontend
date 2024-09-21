@@ -1,45 +1,50 @@
 "use client";
 import {
-  useAuthModal,
-  useLogout,
   useSignerStatus,
   useUser,
 } from "@account-kit/react";
-import MyOpSenderComponent from "./components/sca/sendop";
-import SwapChain from "./components/sca/changeChain";
-import ReadAccount from "./components/sca/getAccount";
-import SetGreetingComponent from "./components/sca/sendop2";
+import { useRouter } from "next/navigation"; // Import Next.js router for navigation
+import { useEffect } from "react";
 
 
-export default function Home() {
+export default function Page() {
   const user = useUser();
-  const { openAuthModal } = useAuthModal();
   const signerStatus = useSignerStatus();
-  const { logout } = useLogout();
+  const router = useRouter(); // Initialize Next.js router
+
 
   console.log(signerStatus.status);
 
+  // Redirect logic
+  useEffect(() => {
+    if (!signerStatus.isInitializing) {
+      console.log("User status:", user); // Log user status
+      if (user) {
+        router.push("/home"); // Only redirect if user is logged in
+      }
+    }
+  }, [signerStatus.isInitializing, user, router]);
+
+   // New effect to redirect after logout
+   useEffect(() => {
+    if (!signerStatus.isInitializing && !user) {
+      router.push("/"); // Redirect to landing page if user is not logged in
+    }
+  }, [user, signerStatus.isInitializing, router]);
+
+  // Show landing page content if user is not logged in
   return (
     <main className="flex min-h-screen flex-col items-center p-24 gap-4 justify-center text-center">
       {signerStatus.isInitializing ? (
-        <>Loading...</>
-      ) : user ? (
-        <div className="flex flex-col gap-2 p-2">
-          <p className="text-xl font-bold">Success!</p>
-          Logged in as {user.email ?? "anon"}.
-          <button className="btn btn-primary mt-6" onClick={() => logout()}>
-            Log out
-          </button>
+        <p>Loading...</p> // Show loading state while initializing
+      ) : !user ? (
+        // Show landing page content if user is not logged in
+        <div>
+          <h1>Welcome to Our App</h1>
+          <p>This is the landing page content.</p>
         </div>
-      ) : (
-        <button className="btn btn-primary" onClick={openAuthModal}>
-          Login
-        </button>
-      )}
-      <SetGreetingComponent />
-      <MyOpSenderComponent />
-      <SwapChain />
-      <ReadAccount />
+      ) : null}
     </main>
   );
+
 }
