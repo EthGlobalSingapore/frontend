@@ -11,6 +11,7 @@ import { sepolia } from "viem/chains";
 import { decodeEventLog, encodeFunctionData, Hex, parseAbi } from "viem";
 import { useStrategyAddress } from "../hooks/useStrategyAddress";
 import { useSendUserOperation, useSmartAccountClient } from "@account-kit/react";
+import { tokens } from "../tokens";
 
 
 const MultiStepForm = () => {
@@ -93,9 +94,10 @@ const MultiStepForm = () => {
         // console.log(logs);
         localStorage.setItem("strategyAddress", logs.find((log) => log !== undefined) ?? "0x0000000000000000000000000000000000000000");
 
-        const token1 = JSON.parse(localStorage.getItem("submittedData") as string)[0].option;
-        const token2 = JSON.parse(localStorage.getItem("submittedData") as string)[1].option ?? "0x0000000000000000000000000000000000000000"; 
-        const token3 = JSON.parse(localStorage.getItem("submittedData") as string)[2].option ?? "0x0000000000000000000000000000000000000000";  
+        const submittedData = JSON.parse(localStorage.getItem("submittedData") || "[]") as Array<{option: keyof typeof tokens}>;
+        const token1 = submittedData[0] ? tokens[submittedData[0].option].address : "0x0000000000000000000000000000000000000000";
+        const token2 = submittedData[1] ? tokens[submittedData[1].option].address : "0x0000000000000000000000000000000000000000";
+        const token3 = submittedData[2] ? tokens[submittedData[2].option].address : "0x0000000000000000000000000000000000000000";
         
         const usdcAddress = '0x44F77D858c3FB2fbC355A2B8bd8d92357dAA9315';
 
