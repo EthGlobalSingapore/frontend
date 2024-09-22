@@ -31,9 +31,31 @@ const MultiStepForm = () => {
     `event StrategyCreated(address strategyAddress)`
   ]);
 
+  const strategyAbi = parseAbi([
+    'function setDCAINStrategy(address _dcaINoutToken1,address _dcaINoutToken2,address _dcaINoutToken3,uint256 _frequency) public',
+    `function setDCAOUTStrategy(address _outToken,address _targetToken,int256 _priceTarget,uint256 _percent) public`,
+  ]);
+
   const [userOpCompleted, setUserOpCompleted] = useState(false);
 
   const { client } = useSmartAccountClient({ type: "MultiOwnerModularAccount" });
+
+  const { sendUserOperation: sendUserOperation2, isSendingUserOperation: isSendingUserOperation2  } = useSendUserOperation({
+    client,
+    // optional parameter that will wait for the transaction to be mined before returning
+    waitForTxn: true,
+    onSuccess: async ({ hash, request }) => {
+      console.log('sendUserOperation2 success')
+      console.log(`tx hash:${hash}`);
+
+      const receipt = await client?.getTransactionReceipt({hash});
+      console.log(`receipt ${receipt}`);
+    },
+    onError: async (e, request) => {
+      console.error(e);
+      // setError(`Error fetching strategy address: ${e}`);
+    },
+  });
   const { sendUserOperation, isSendingUserOperation } = useSendUserOperation({
     client,
     // optional parameter that will wait for the transaction to be mined before returning
@@ -69,8 +91,43 @@ const MultiStepForm = () => {
         });
 
         // console.log(logs);
+        localStorage.setItem("strategyAddress", logs.find((log) => log !== undefined) ?? "0x0000000000000000000000000000000000000000");
 
-        localStorage.setItem("strategyAddress", logs.find((log) => log !== undefined) ?? "");
+        const token1 = JSON.parse(localStorage.getItem("submittedData") as string)[0].option;
+        const token2 = JSON.parse(localStorage.getItem("submittedData") as string)[1].option ?? "0x0000000000000000000000000000000000000000"; 
+        const token3 = JSON.parse(localStorage.getItem("submittedData") as string)[2].option ?? "0x0000000000000000000000000000000000000000";  
+        
+        const usdcAddress = '0x44F77D858c3FB2fbC355A2B8bd8d92357dAA9315';
+
+        const amount = JSON.parse(localStorage.getItem("submittedData") as string)[0].newAmount;
+
+        const cd1 = encodeFunctionData({
+          abi: strategyAbi,
+          functionName: "setDCAINStrategy",
+          args: [token1 as Hex, token2 as Hex, token3 as Hex, 60n],
+        })
+
+        const cd2 = encodeFunctionData({
+          abi: strategyAbi,
+          functionName: "setDCAOUTStrategy",
+          args: [usdcAddress, '0x0000000000000000000000000000000000000000', amount, 100n],
+        })
+
+        sendUserOperation2({
+          uo: [
+            {
+              target: localStorage.getItem("strategyAddress") as Hex,
+              data: cd1,
+              value: 0n,
+            },
+            {
+              target: localStorage.getItem("strategyAddress") as Hex,
+              data: cd2,
+              value: 0n,
+            },
+        ],});
+    
+
         setUserOpCompleted(true);
 
         // setStrategyAddress(logs.find((log) => log !== undefined) ?? null);
@@ -102,9 +159,11 @@ const MultiStepForm = () => {
         newAmount: newAmount,
       }];
 
+      localStorage.setItem("submittedData", JSON.stringify(combinedData));
+
       
       const factoryAbi = parseAbi([
-        'function createMyStrategy(address destinationWallet, uint256 destinartionChain) external',
+        'function createMyStrategy(address destinationWallet, address usdcAddress, address chainlinkAutomationRegistry) external',
         `function getStrategy(address user) public view returns (address)`,
         `event StrategyDeployed(address owner, address strategyAddress)`
       ]);
@@ -116,7 +175,7 @@ const MultiStepForm = () => {
         address = await client?.readContract({
           address: "0x6353CCB47553067B99Ba57BEE120bf6aaFaa47f9",
           abi: factoryAbi,
-          args: ["0x77a75E8854051E2854FE2806AdF794ddF97f2F92"],  // Arguments for the function call
+          args: [client?.getAddress()],  // Arguments for the function call
           functionName: 'getStrategy',  // Function name to call
         });
       } catch (error) {
@@ -129,7 +188,7 @@ const MultiStepForm = () => {
         const cd = encodeFunctionData({
           abi: factoryAbi,
           functionName: "createMyStrategy",
-          args: ["0x0000000000000000000000000000000000000000", 1000000000000000000n],
+          args: ["0x0000000000000000000000000000000000000000", '0x44F77D858c3FB2fbC355A2B8bd8d92357dAA9315', '0x0000000000000000000000000000000000000000'],
         })
 
         sendUserOperation({
@@ -150,10 +209,43 @@ const MultiStepForm = () => {
       } else {
         localStorage.setItem("strategyAddress", address!);
         console.log("strategyAddress", address);
+
+        const token1 = JSON.parse(localStorage.getItem("submittedData") as string)[0].option;
+        const token2 = JSON.parse(localStorage.getItem("submittedData") as string)[1].option ?? "0x0000000000000000000000000000000000000000"; 
+        const token3 = JSON.parse(localStorage.getItem("submittedData") as string)[2].option ?? "0x0000000000000000000000000000000000000000";  
+        
+        const usdcAddress = '0x44F77D858c3FB2fbC355A2B8bd8d92357dAA9315';
+
+        const amount = JSON.parse(localStorage.getItem("submittedData") as string)[0].newAmount;
+
+        const cd1 = encodeFunctionData({
+          abi: strategyAbi,
+          functionName: "setDCAINStrategy",
+          args: [token1 as Hex, token2 as Hex, token3 as Hex, 60n],
+        })
+
+        const cd2 = encodeFunctionData({
+          abi: strategyAbi,
+          functionName: "setDCAOUTStrategy",
+          args: [usdcAddress, '0x0000000000000000000000000000000000000000', amount, 100n],
+        })
+
+        sendUserOperation2({
+          uo: [
+            {
+              target: localStorage.getItem("strategyAddress") as Hex,
+              data: cd1,
+              value: 0n,
+            },
+            {
+              target: localStorage.getItem("strategyAddress") as Hex,
+              data: cd2,
+              value: 0n,
+            },
+        ],});
         router.push('/home');
       }
       // Store data in localStorage (or use state management)
-      localStorage.setItem("submittedData", JSON.stringify(combinedData));
       localStorage.setItem("isStrategyCreated", "true");
 
       console.log('Final Submitted Data:', data);
