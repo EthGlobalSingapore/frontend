@@ -17,8 +17,8 @@ const londrinaSolid = Londrina_Solid({
 });
 
 export const metadata: Metadata = {
-  title: "Embedded Accounts UI Components Quickstart NextJs Template",
-  description: "Embedded Accounts UI Components Quickstart NextJs Template",
+  title: "DCAwesome",
+  description: "Automate DCA into your favourite assets",
 };
 
 export default function RootLayout({
