@@ -295,7 +295,7 @@ const handleNext = (data) => {
       {/* Step 1 */}
       {step === 1 && (
         <div className="step-container">
-          <div>
+          <div className="flex flex-col gap-2">
             <h4>Step 1</h4> 
             <h1>Select wallet and chain</h1>
           </div>
@@ -345,7 +345,7 @@ const handleNext = (data) => {
       {/* Step 2 */}
       {step === 2 && (
         <div className="step-container">
-          <div>
+          <div className="flex flex-col gap-2">
             <h4>Step 2</h4>
             <h1>Choose favourite assets</h1>
           </div>
@@ -353,16 +353,16 @@ const handleNext = (data) => {
             {['Bitcoin', 'Ethereum', 'Solana', 'Nouns'].map((option) => {
               // Define a mapping of option names to image URLs
               const images = {
-                Bitcoin: '/assets/Bitcoin-Nouns.jpg', // Correct path
-                Ethereum: '/assets/Ethereum-Nouns.jpg', // Correct path
-                Solana: '/assets/Solana-Nouns.jpg', // Correct path
-                Nouns: '/assets/Nouns-Nouns.jpg', // Correct path
+                Bitcoin: '/assets/Bitcoin.png', // Correct path
+                Ethereum: '/assets/Ethereum.svg', // Correct path
+                Solana: '/assets/Solana.png', // Correct path
+                Nouns: '/assets/Polygon.png', // Correct path
               };
 
               return (
                 <div 
                   key={option} 
-                  className=" rounded-lg border-4 asset-card border-gray-300 flex flex-col items-center gap-4 pb-4"
+                  className=" rounded-lg border-2 asset-card px-8 py-4 border-gray-300 flex flex-col items-center gap-4 pb-4"
                 >
                   <img 
                     src={images[option]} 
@@ -392,7 +392,7 @@ const handleNext = (data) => {
       {/* Step 3 */}
       {step === 3 && (
         <div className="step-container">
-          <div>
+          <div className="flex flex-col gap-2">
             <h4>Step 3</h4>
             <h1>Exit targets</h1>
           </div>
